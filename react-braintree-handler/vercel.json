@@ -5,6 +5,9 @@
         "src": "package.json",
         "use": "@vercel/node"
       }
-    ]
+    ],
+    "env": {
+      "NPM_ONLY_PRODUCTION": "false"
+    }
   }
   

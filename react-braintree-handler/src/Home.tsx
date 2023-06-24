@@ -1,10 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import braintree, { Dropin } from 'braintree-web-drop-in';
-import './Payment.css';
+import './Home.css';
 
 interface FormErrors {
   [key: string]: string | null;
+}
+
+interface NoncePayload {
+  nonce: string;
+}
+
+interface ErrorResponse {
+  message: string;
 }
 
 const Home: React.FC = () => {
@@ -14,12 +22,12 @@ const Home: React.FC = () => {
   const [dropinInstance, setDropinInstance] = useState<Dropin | null>(null);
 
   useEffect(() => {
-    axios.get('/api/braintree/getClientToken')
+    axios.get('https://candii4-backend2-3f9abaacb350.herokuapp.com/client_token')
       .then(response => {
         setClientToken(response.data.clientToken);
       })
-      .catch(error => {
-        console.error("Error fetching client token:", error);
+      .catch((error: ErrorResponse) => {
+        console.error("Error fetching client token:", error.message);
       });
   }, []);
 
@@ -34,37 +42,25 @@ const Home: React.FC = () => {
           return;
         }
         setDropinInstance(instance);
+        // Immediately request the payment method
+        instance.requestPaymentMethod()
+        .then(({ nonce }: NoncePayload) => {
+          return axios.post('https://candii4-backend2-3f9abaacb350.herokuapp.com/payment', { nonce });
+        })
+        .then((response: any) => {
+          // Handle response
+          console.log('Payment response:', response.data);
+        })
+        .catch((error: ErrorResponse) => {
+          // Handle error
+          console.error('Payment error:', error.message);
+        });
       });
     }
   }, [clientToken]);
 
-  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!dropinInstance) {
-      console.error('Dropin instance not ready');
-      return;
-    }
-
-    dropinInstance.requestPaymentMethod()
-      .then(({ nonce }) => {
-        return axios.post('/api/braintree/processPayment', { nonce });
-      })
-      .then(response => {
-        // Handle response
-        console.log('Payment response:', response.data);
-      })
-      .catch(error => {
-        // Handle error
-        console.error('Payment error:', error);
-      });
-  };
-
   return (
-    <div ref={dropinContainer}>
-      <form id="paymentForm" onSubmit={handleFormSubmit}>
-        <button id="submit-button" type="submit">Confirm Payment</button>
-      </form>
-    </div>
+    <div ref={dropinContainer} />
   );
 };
 

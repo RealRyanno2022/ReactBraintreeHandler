@@ -16,8 +16,8 @@ interface ErrorResponse {
 }
 
 const Home: React.FC = () => {
-  const [clientToken, setClientToken] = useState<string | null>(null);
-  const dropinContainer = useRef<HTMLDivElement>(null);
+  const [clientToken, setClientToken] = useState(null);
+  const dropinContainer = useRef(null);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [dropinInstance, setDropinInstance] = useState<Dropin | null>(null);
 
@@ -53,6 +53,7 @@ const Home: React.FC = () => {
       });
     } else {
       console.log('Client token or container is not ready');
+      console.log('dropinContainer.current:', dropinContainer.current);
     }
   }, [clientToken]);
   
